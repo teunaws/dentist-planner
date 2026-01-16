@@ -2,20 +2,28 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
-
 // Factory function for Next.js Client Components
-export const createClient = () =>
-  createBrowserClient<any>(supabaseUrl, supabaseAnonKey, {
+export const createClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // If running in browser, this is a critical error
+    if (typeof window !== 'undefined') {
+      throw new Error('Missing Supabase environment variables')
+    }
+    // Logic for build/server time: 
+    // We return a dummy client or throw specific error? 
+    // Throwing is fine if logic actually tries to use it.
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createBrowserClient<any>(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: { 'x-application-name': 'dentist-planner' },
     }
   })
+}
 
 // Singleton for backward compatibility with existing services
 // Note: In strict Next.js apps, you should prefer using createClient() in components/hooks
