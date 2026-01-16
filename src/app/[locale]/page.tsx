@@ -176,7 +176,6 @@ export default function HomePage() {
                             {[
                                 { label: 'Home', id: 'hero' },
                                 { label: 'Features', id: 'features' },
-                                { label: 'Contact', id: 'contact' },
                                 { label: 'Reviews', id: 'reviews' },
                             ].map((item) => (
                                 <button
