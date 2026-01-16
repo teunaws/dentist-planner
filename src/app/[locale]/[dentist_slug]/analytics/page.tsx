@@ -26,7 +26,7 @@ import {
 
 export default function AnalyticsDashboard() {
   const { user } = useAuthStore()
-  const { slug, analyticsData, isAnalyticsLoading, refreshAnalytics } = useTenant()
+  const { slug, analyticsData, isAnalyticsLoading } = useTenant()
   const { tenant } = useParams()
 
   // Debug logging
