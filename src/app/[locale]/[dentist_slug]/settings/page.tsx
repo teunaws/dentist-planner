@@ -10,7 +10,7 @@ import {
   Edit,
   Copy,
 } from 'lucide-react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { GlassCard } from '../../../../components/ui/GlassCard'
 import { GlassButton } from '../../../../components/ui/GlassButton'
 import { GlassInput } from '../../../../components/ui/GlassInput'
@@ -110,7 +110,7 @@ interface BookingFormConfig {
 
 export default function SettingsPage() {
   // const { tenant } = useParams() // Handled via context
-  const { config, refresh, updateConfig } = useTenant()
+  const { config, updateConfig } = useTenant()
   const { user } = useAuthStore()
 
   // State management

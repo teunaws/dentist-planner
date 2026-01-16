@@ -38,7 +38,7 @@ export function useOptimisticBlockTime({ tenantId, onSuccess, onError }: UseOpti
             // Return a context object with the snapshotted value
             return { previousAppointments }
         },
-        onError: (err, newBlockedTime, context) => {
+        onError: (err, _newBlockedTime, context) => {
             // If the mutation fails, use the context returned from onMutate to roll back
             if (context?.previousAppointments) {
                 queryClient.setQueryData(['appointments', tenantId], context.previousAppointments)

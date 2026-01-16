@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import {

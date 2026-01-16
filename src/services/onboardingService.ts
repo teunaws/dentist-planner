@@ -26,11 +26,11 @@ export const onboardingService = {
   // Now uses Edge Function for admin operations
   async generateCode(tenantId: string, expiresInDays: number = 30, useAdminClient = false): Promise<string> {
     console.log('[onboardingService] generateCode called:', { tenantId, expiresInDays, useAdminClient })
-    
+
     // If using admin client, call Edge Function instead
     if (useAdminClient) {
       console.log('[onboardingService] Using Edge Function for admin code generation')
-      
+
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         throw new Error('No active session. Please log in first.')
@@ -62,22 +62,22 @@ export const onboardingService = {
       console.log('[onboardingService] Onboarding code generated via Edge Function:', data.data.code)
       return data.data.code
     }
-    
+
     // Regular client flow (for non-admin users - if needed in future)
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError) {
       console.error('[onboardingService] Session error:', sessionError)
       throw new Error(`Session error: ${sessionError.message}`)
     }
-    
+
     if (!session) {
       console.error('[onboardingService] No active session')
       throw new Error('No active session. Please log in first.')
     }
-    
+
     console.log('[onboardingService] Session verified:', session.user.id)
-    
+
     const client = supabase
     console.log('[onboardingService] Using regular client')
 
@@ -95,7 +95,7 @@ export const onboardingService = {
     let code = generateRandomCode()
     let attempts = 0
     console.log('[onboardingService] Checking code uniqueness...')
-    
+
     while (attempts < 10) {
       try {
         const uniquenessCheckPromise = client
@@ -103,14 +103,14 @@ export const onboardingService = {
           .select('id')
           .eq('code', code)
           .maybeSingle()
-        
+
         const uniquenessTimeoutPromise = new Promise<{ data: null; error: { message: string; code?: string } }>((resolve) =>
-          setTimeout(() => resolve({ 
-            data: null, 
+          setTimeout(() => resolve({
+            data: null,
             error: { message: 'Uniqueness check timed out after 5 seconds', code: 'TIMEOUT' }
           }), 5000)
         )
-        
+
         const { data: existing, error: checkError } = await Promise.race([
           uniquenessCheckPromise,
           uniquenessTimeoutPromise
@@ -122,13 +122,13 @@ export const onboardingService = {
             console.error('[onboardingService] RLS error with admin client - service role key may not be working:', checkError)
             throw new Error(`RLS policy error: ${checkError.message}. Verify VITE_SUPABASE_SERVICE_ROLE_KEY is set correctly.`)
           }
-          
+
           if (!isNotFoundError(checkError) && checkError.code !== SUPABASE_ERROR_CODES.TIMEOUT) {
             // NOT_FOUND is "not found" which is fine, other errors are problems
             console.error('[onboardingService] Error checking code uniqueness:', checkError)
             throw new Error(`Failed to check code uniqueness: ${checkError.message}`)
           }
-          
+
           if (checkError.code === 'TIMEOUT') {
             console.error('[onboardingService] Uniqueness check timed out')
             throw new Error('Uniqueness check timed out. This may indicate RLS blocking the query.')
@@ -168,15 +168,15 @@ export const onboardingService = {
           p_tenant_id: tenantId,
           p_code: code,
           p_expires_at: expiresAt.toISOString(),
-        })
-        
+        } as any)
+
         const rpcTimeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
-          setTimeout(() => resolve({ 
-            data: null, 
+          setTimeout(() => resolve({
+            data: null,
             error: { message: 'RPC call timed out after 5 seconds' }
           }), 5000)
         )
-        
+
         const { data: rpcData, error: rpcError } = await Promise.race([rpcPromise, rpcTimeoutPromise])
 
         if (!rpcError && rpcData) {
@@ -200,7 +200,7 @@ export const onboardingService = {
         tenant_id: tenantId,
         code,
         expires_at: expiresAt.toISOString(),
-      })
+      } as any)
       .select()
       .single()
 
@@ -231,11 +231,13 @@ export const onboardingService = {
   async getCodeDetails(code: string): Promise<OnboardingCode | null> {
     try {
       // No need to wait for session - onboarding codes should be publicly readable
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from('onboarding_codes')
         .select('*, tenant:tenants(id, slug, display_name, is_onboarded)')
         .eq('code', code.toUpperCase())
         .maybeSingle() // Use maybeSingle() to handle "not found" gracefully
+
+      const data = rawData as any
 
       if (error) {
         console.error('[onboardingService] Error fetching code details:', error)
@@ -312,22 +314,24 @@ export const onboardingService = {
 
       // Step 2.5: Verify tenant exists BEFORE proceeding (prevent foreign key constraint violation)
       console.log('[onboardingService] Verifying tenant exists:', codeDetails.tenantId)
-      
+
       if (!codeDetails.tenantId) {
         throw new Error('Onboarding code is invalid: missing tenant information. Please contact support.')
       }
-      
-      const { data: tenantCheck, error: tenantCheckError } = await supabase
+
+      const { data: rTenantCheck, error: tenantCheckError } = await supabase
         .from('tenants')
         .select('id, slug, display_name, is_onboarded')
         .eq('id', codeDetails.tenantId)
         .maybeSingle()
-      
+
+      const tenantCheck = rTenantCheck as any
+
       if (tenantCheckError) {
         console.error('[onboardingService] Error checking tenant:', tenantCheckError)
         throw new Error(`Failed to verify practice: ${tenantCheckError.message}`)
       }
-      
+
       if (!tenantCheck) {
         console.error('[onboardingService] Tenant not found for onboarding code:', {
           code: data.code,
@@ -335,13 +339,13 @@ export const onboardingService = {
         })
         throw new Error('The practice associated with this onboarding code no longer exists. Please contact your administrator for a new code.')
       }
-      
+
       console.log('[onboardingService] Tenant verified:', {
         name: tenantCheck.display_name,
         slug: tenantCheck.slug,
         id: tenantCheck.id,
       })
-      
+
       // Use the verified tenant ID (in case there was any mismatch)
       const verifiedTenantId = tenantCheck.id
 
@@ -371,22 +375,22 @@ export const onboardingService = {
       }
 
       console.log('[onboardingService] Auth user created, waiting for trigger to sync to public.users...')
-      
+
       // Step 3.5: Wait for the trigger to create the user in public.users
       // The trigger should fire immediately, but we'll wait a moment to be safe
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       // Verify the user was created by the trigger
       const { data: triggerUser, error: triggerError } = await supabase
         .from('users')
         .select('id')
         .eq('id', authData.user.id)
         .maybeSingle()
-      
+
       if (triggerError && !isNotFoundError(triggerError)) {
         console.warn('[onboardingService] Error checking trigger-created user:', triggerError)
       }
-      
+
       if (!triggerUser) {
         console.warn('[onboardingService] User not yet created by trigger, will be created by complete_onboarding function')
       } else {
@@ -402,7 +406,7 @@ export const onboardingService = {
         tenant_id: verifiedTenantId, // Use verified tenant ID
         code_id: codeDetails.id,
       })
-      
+
       console.log('[onboardingService] Calling complete_onboarding RPC with:', {
         p_user_id: authData.user.id,
         p_user_email: data.email,
@@ -411,7 +415,7 @@ export const onboardingService = {
         p_user_tenant_id: verifiedTenantId,
         p_onboarding_code_id: codeDetails.id,
       })
-      
+
       const { data: resultData, error: onboardingError } = await supabase.rpc('complete_onboarding', {
         p_user_id: authData.user.id,
         p_user_email: data.email,
@@ -419,7 +423,7 @@ export const onboardingService = {
         p_user_role: 'dentist',
         p_user_tenant_id: verifiedTenantId, // Use verified tenant ID (not from codeDetails)
         p_onboarding_code_id: codeDetails.id,
-      })
+      } as any)
 
       if (onboardingError) {
         console.error('[onboardingService] Onboarding function error:', {
@@ -440,18 +444,20 @@ export const onboardingService = {
       }
 
       console.log('[onboardingService] Onboarding RPC completed successfully, result:', resultData)
-      
+
       // Step 4.5: Wait a moment for the database to commit and RLS to propagate
       // This helps prevent race conditions when auth state change fires
       await new Promise(resolve => setTimeout(resolve, 300))
-      
+
       // Step 5: Verify the user exists and has tenant_id set
-      const { data: verifyUser, error: verifyError } = await supabase
+      const { data: rVerifyUser, error: verifyError } = await supabase
         .from('users')
         .select('id, email, role, tenant_id')
         .eq('id', authData.user.id)
         .maybeSingle()
-      
+
+      const verifyUser = rVerifyUser as any
+
       if (verifyError) {
         console.error('[onboardingService] Error verifying user after onboarding:', verifyError)
         // Don't throw - the user might exist but RLS might be blocking
@@ -466,7 +472,7 @@ export const onboardingService = {
           role: verifyUser.role,
           tenant_id: verifyUser.tenant_id,
         })
-        
+
         // Verify tenant_id was set correctly
         if (verifyUser.tenant_id !== verifiedTenantId) {
           console.warn('[onboardingService] WARNING: tenant_id mismatch!', {
@@ -475,14 +481,16 @@ export const onboardingService = {
           })
         }
       }
-      
+
       // Step 5: Verify tenant_id was set (safety check)
-      const { data: userCheck, error: userCheckError } = await supabase
+      const { data: rUserCheck, error: userCheckError } = await supabase
         .from('users')
         .select('id, tenant_id')
         .eq('id', authData.user.id)
         .single()
-      
+
+      const userCheck = rUserCheck as any
+
       if (userCheckError) {
         console.warn('[onboardingService] Could not verify user tenant_id:', userCheckError)
       } else if (!userCheck?.tenant_id) {
@@ -491,11 +499,11 @@ export const onboardingService = {
           tenant_id: userCheck?.tenant_id,
         })
         // Try to fix it manually using verified tenant ID
-        const { error: fixError } = await supabase
-          .from('users')
-          .update({ tenant_id: verifiedTenantId })
+        const { error: fixError } = await (supabase
+          .from('users') as any)
+          .update({ tenant_id: verifiedTenantId } as any)
           .eq('id', authData.user.id)
-        
+
         if (fixError) {
           console.error('[onboardingService] Failed to fix tenant_id:', fixError)
         } else {
@@ -507,11 +515,11 @@ export const onboardingService = {
           actual: userCheck.tenant_id,
         })
         // Try to fix it
-        const { error: fixError } = await supabase
-          .from('users')
-          .update({ tenant_id: verifiedTenantId })
+        const { error: fixError } = await (supabase
+          .from('users') as any)
+          .update({ tenant_id: verifiedTenantId } as any)
           .eq('id', authData.user.id)
-        
+
         if (fixError) {
           console.error('[onboardingService] Failed to fix tenant_id mismatch:', fixError)
         } else {
@@ -545,7 +553,7 @@ export const onboardingService = {
     }
 
     return (
-      data?.map((c) => ({
+      (data as any[])?.map((c: any) => ({
         id: c.id,
         tenantId: c.tenant_id,
         code: c.code,

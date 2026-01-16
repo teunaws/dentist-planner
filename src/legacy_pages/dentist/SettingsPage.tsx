@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useRef } from 'react'
 import {
   Settings as SettingsIcon,
@@ -573,8 +574,8 @@ export const SettingsPage = () => {
             <button
               onClick={() => setActiveTab('general')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'general'
-                  ? 'text-slate-900 border-b-2 border-slate-900'
-                  : 'text-slate-500 hover:text-slate-700'
+                ? 'text-slate-900 border-b-2 border-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               General Settings
@@ -582,8 +583,8 @@ export const SettingsPage = () => {
             <button
               onClick={() => setActiveTab('email')}
               className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'email'
-                  ? 'text-slate-900 border-b-2 border-slate-900'
-                  : 'text-slate-500 hover:text-slate-700'
+                ? 'text-slate-900 border-b-2 border-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               Email Settings

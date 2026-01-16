@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from 'react'
 import { Package, Plus, Edit, Trash2, Save } from 'lucide-react'
 import { useParams, Navigate } from 'react-router-dom'

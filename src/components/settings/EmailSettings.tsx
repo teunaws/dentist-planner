@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Mail, Copy, Eye, Save, MessageSquare, Edit2 } from 'lucide-react'
+import { Mail, Copy, Save, MessageSquare, Edit2 } from 'lucide-react'
 import { GlassCard } from '../ui/GlassCard'
 import { GlassButton } from '../ui/GlassButton'
 import { GlassInput } from '../ui/GlassInput'
@@ -35,7 +35,7 @@ const MOCK_DATA = {
 export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSaving = false }: EmailSettingsProps) => {
   const [config, setConfig] = useState<EmailConfig>(emailConfig)
   const [smsCfg, setSmsCfg] = useState<SMSConfig>(smsConfig || {})
-  
+
   // Edit states for each section
   const [isEditingSender, setIsEditingSender] = useState(false)
   const [isEditingConfirmation, setIsEditingConfirmation] = useState(false)
@@ -93,26 +93,26 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
     // Don't overwrite user's template edits while they're editing
     if (!isSavingRef.current && !isEditingConfirmation && !isEditingReminder && !isEditingSender) {
       const currentConfig = configRef.current
-      
+
       // Check if props match what we just saved (save completed successfully)
-      const propsMatchSaved = lastSavedConfigRef.current && 
+      const propsMatchSaved = lastSavedConfigRef.current &&
         emailConfig.confirmationSubject === lastSavedConfigRef.current.confirmationSubject &&
         emailConfig.confirmationBody === lastSavedConfigRef.current.confirmationBody &&
         emailConfig.senderName === lastSavedConfigRef.current.senderName &&
         emailConfig.senderLocalPart === lastSavedConfigRef.current.senderLocalPart &&
         emailConfig.replyTo === lastSavedConfigRef.current.replyTo
-      
+
       // Normalize toggle values from props
       const normalizedConfirmationEnabled = emailConfig.confirmationEnabled !== false
       const normalizedReminderEnabled = emailConfig.reminderEnabled ?? false
-      
+
       // Only sync if props match what we saved (save succeeded) OR if we haven't saved yet
       if (propsMatchSaved || !lastSavedConfigRef.current) {
         // If props match saved, sync toggle values from props (they were successfully saved)
         // Otherwise, preserve local toggle values (they might be ahead of props)
-        const shouldSyncToggles = propsMatchSaved || 
+        const shouldSyncToggles = propsMatchSaved ||
           (emailConfig.confirmationEnabled !== undefined && emailConfig.reminderEnabled !== undefined)
-        
+
         setConfig(prev => ({
           ...emailConfig,
           confirmationEnabled: shouldSyncToggles ? normalizedConfirmationEnabled : prev.confirmationEnabled,
@@ -123,7 +123,7 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
           confirmationEnabled: shouldSyncToggles ? normalizedConfirmationEnabled : currentConfig.confirmationEnabled,
           reminderEnabled: shouldSyncToggles ? normalizedReminderEnabled : currentConfig.reminderEnabled,
         }
-        
+
         // Update prevToggleValuesRef if we synced toggles
         if (shouldSyncToggles) {
           prevToggleValuesRef.current = {
@@ -132,7 +132,7 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
             reminderEnabled: normalizedReminderEnabled,
           }
         }
-        
+
         // Clear saved ref if props match (save completed)
         if (propsMatchSaved) {
           lastSavedConfigRef.current = null
@@ -166,23 +166,23 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
     // Don't overwrite user's template edits while they're editing
     if (!isSavingRef.current && !isEditingSMS) {
       const currentSmsCfg = smsCfgRef.current
-      
+
       // Check if props match what we just saved (save completed successfully)
-      const propsMatchSaved = lastSavedSmsCfgRef.current && 
+      const propsMatchSaved = lastSavedSmsCfgRef.current &&
         (smsConfig?.confirmationTemplate || '') === (lastSavedSmsCfgRef.current.confirmationTemplate || '') &&
         (smsConfig?.reminderTemplate || '') === (lastSavedSmsCfgRef.current.reminderTemplate || '')
-      
+
       // Normalize toggle values from props
       const normalizedSmsConfirmationEnabled = smsConfig?.confirmationEnabled ?? false
       const normalizedSmsReminderEnabled = smsConfig?.reminderEnabled ?? false
-      
+
       // Only sync if props match what we saved (save succeeded) OR if we haven't saved yet
       if (propsMatchSaved || !lastSavedSmsCfgRef.current) {
         // If props match saved, sync toggle values from props (they were successfully saved)
         // Otherwise, preserve local toggle values (they might be ahead of props)
-        const shouldSyncToggles = propsMatchSaved || 
+        const shouldSyncToggles = propsMatchSaved ||
           (smsConfig?.confirmationEnabled !== undefined && smsConfig?.reminderEnabled !== undefined)
-        
+
         setSmsCfg(prev => ({
           ...(smsConfig || {}),
           confirmationEnabled: shouldSyncToggles ? normalizedSmsConfirmationEnabled : prev.confirmationEnabled,
@@ -193,7 +193,7 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
           confirmationEnabled: shouldSyncToggles ? normalizedSmsConfirmationEnabled : currentSmsCfg.confirmationEnabled,
           reminderEnabled: shouldSyncToggles ? normalizedSmsReminderEnabled : currentSmsCfg.reminderEnabled,
         }
-        
+
         // Update prevToggleValuesRef if we synced toggles
         if (shouldSyncToggles) {
           prevToggleValuesRef.current = {
@@ -202,7 +202,7 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
             smsReminderEnabled: normalizedSmsReminderEnabled,
           }
         }
-        
+
         // Clear saved ref if props match (save completed)
         if (propsMatchSaved) {
           lastSavedSmsCfgRef.current = null
@@ -273,12 +273,12 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
       while (isSavingRef.current) {
         await new Promise(resolve => setTimeout(resolve, 100))
       }
-      
+
       // Use refs to get latest values (these might have changed while waiting)
       // Re-check if values still differ from previous (user might have changed them back)
       const latestConfig = configRef.current
       const latestSmsCfg = smsCfgRef.current
-      
+
       // Normalize toggle values to explicit booleans
       const latestToggleValues = {
         confirmationEnabled: latestConfig.confirmationEnabled !== false,
@@ -286,20 +286,20 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
         smsConfirmationEnabled: latestSmsCfg.confirmationEnabled ?? false,
         smsReminderEnabled: latestSmsCfg.reminderEnabled ?? false,
       }
-      
+
       // Check if values still differ from what we last saved
       const stillHasChanges =
         prevToggleValuesRef.current.confirmationEnabled !== latestToggleValues.confirmationEnabled ||
         prevToggleValuesRef.current.reminderEnabled !== latestToggleValues.reminderEnabled ||
         prevToggleValuesRef.current.smsConfirmationEnabled !== latestToggleValues.smsConfirmationEnabled ||
         prevToggleValuesRef.current.smsReminderEnabled !== latestToggleValues.smsReminderEnabled
-      
+
       if (!stillHasChanges) {
         // Values were reverted or already saved, skip
         console.log('[EmailSettings] No changes detected, skipping save')
         return
       }
-      
+
       // Create normalized config objects with explicit boolean values
       // Always include toggle values explicitly, even if false
       const normalizedConfig: EmailConfig = {
@@ -319,9 +319,9 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
         reminderEnabled: latestToggleValues.smsReminderEnabled,
         reminderTemplate: latestSmsCfg.reminderTemplate,
       }
-      
-      console.log('[EmailSettings] Auto-saving toggle changes:', { 
-        config: normalizedConfig, 
+
+      console.log('[EmailSettings] Auto-saving toggle changes:', {
+        config: normalizedConfig,
         smsCfg: normalizedSmsCfg,
         confirmationEnabled: normalizedConfig.confirmationEnabled,
         reminderEnabled: normalizedConfig.reminderEnabled,
@@ -330,11 +330,11 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
       console.log('[EmailSettings] confirmationEnabled in config?', 'confirmationEnabled' in normalizedConfig)
       console.log('[EmailSettings] reminderEnabled in config?', 'reminderEnabled' in normalizedConfig)
       console.log('[EmailSettings] Full normalized config JSON:', JSON.stringify(normalizedConfig, null, 2))
-      
+
       // Set saving flag to prevent prop sync from overwriting user changes
       isSavingRef.current = true
       setIsAutoSaving(true)
-      
+
       try {
         await onSave(normalizedConfig, normalizedSmsCfg, true) // Pass isAutoSave: true
         console.log('[EmailSettings] Toggle changes auto-saved successfully')
@@ -375,17 +375,17 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
 
   const handleSave = async () => {
     console.log('[EmailSettings] Manual save triggered')
-    
+
     // Wait for any ongoing auto-save to complete first
     while (isSavingRef.current) {
       console.log('[EmailSettings] Waiting for ongoing save to complete...')
       await new Promise(resolve => setTimeout(resolve, 100))
     }
-    
+
     // Get latest values (might have changed while waiting)
     const latestConfig = configRef.current
     const latestSmsCfg = smsCfgRef.current
-    
+
     // Normalize toggle values to explicit booleans
     // Always include toggle values explicitly, even if false
     const normalizedConfig: EmailConfig = {
@@ -405,20 +405,20 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
       reminderEnabled: latestSmsCfg.reminderEnabled ?? false,
       reminderTemplate: latestSmsCfg.reminderTemplate,
     }
-    
+
     console.log('[EmailSettings] Saving config:', { config: normalizedConfig, smsCfg: normalizedSmsCfg })
-    
+
     // Track what we're saving
     lastSavedConfigRef.current = { ...normalizedConfig }
     lastSavedSmsCfgRef.current = { ...normalizedSmsCfg }
-    
+
     // Set saving flag to prevent prop sync during save
     isSavingRef.current = true
-    
+
     try {
       await onSave(normalizedConfig, normalizedSmsCfg, false) // Pass isAutoSave: false for manual saves
       console.log('[EmailSettings] Manual save completed successfully')
-      
+
       // After save completes, wait a bit for props to update, then sync
       setTimeout(() => {
         isSavingRef.current = false
@@ -439,7 +439,7 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
       lastSavedSmsCfgRef.current = null
       throw error
     }
-    
+
     // Note: Individual save handlers will exit their specific edit modes
   }
 
@@ -449,15 +449,15 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
       senderName?: string
       senderLocalPart?: string
     } = {}
-    
+
     if (!config.senderName || config.senderName.trim() === '') {
       errors.senderName = 'Sender Name cannot be empty'
     }
-    
+
     if (!config.senderLocalPart || config.senderLocalPart.trim() === '') {
       errors.senderLocalPart = 'Email Address Prefix cannot be empty'
     }
-    
+
     // If there are validation errors, show them and prevent saving
     if (Object.keys(errors).length > 0) {
       setSenderValidationErrors(errors)
@@ -466,10 +466,10 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
       console.log('[EmailSettings] Validation failed:', errors)
       return
     }
-    
+
     // Clear validation errors
     setSenderValidationErrors({})
-    
+
     // All validations passed, proceed with save
     await handleSave()
     setIsEditingSender(false)
@@ -568,13 +568,13 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
 
         {isEditingSender && (
           <div className="flex justify-end pt-4 border-t border-slate-200">
-            <GlassButton 
+            <GlassButton
               onClick={async (e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 console.log('[EmailSettings] Save Sender Identity button clicked')
                 await handleSaveSender()
-              }} 
+              }}
               isLoading={isSaving}
             >
               <Save className="mr-2 h-4 w-4" />
@@ -637,14 +637,12 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
                     setIsEditingConfirmation(false)
                   }
                 }}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  config.confirmationEnabled !== false ? 'bg-slate-900' : 'bg-slate-300'
-                }`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${config.confirmationEnabled !== false ? 'bg-slate-900' : 'bg-slate-300'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    config.confirmationEnabled !== false ? 'translate-x-6' : 'translate-x-0'
-                  }`}
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${config.confirmationEnabled !== false ? 'translate-x-6' : 'translate-x-0'
+                    }`}
                 />
               </button>
             </div>
@@ -756,13 +754,13 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
 
               {isEditingConfirmation && (
                 <div className="flex justify-end pt-4 border-t border-slate-200">
-                  <GlassButton 
+                  <GlassButton
                     onClick={async (e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       console.log('[EmailSettings] Save Email Confirmation button clicked')
                       await handleSaveConfirmation()
-                    }} 
+                    }}
                     isLoading={isSaving}
                   >
                     <Save className="mr-2 h-4 w-4" />
@@ -807,14 +805,12 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
                     setIsEditingReminder(false)
                   }
                 }}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  (config.reminderEnabled ?? false) ? 'bg-slate-900' : 'bg-slate-300'
-                }`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${(config.reminderEnabled ?? false) ? 'bg-slate-900' : 'bg-slate-300'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    (config.reminderEnabled ?? false) ? 'translate-x-6' : 'translate-x-0'
-                  }`}
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${(config.reminderEnabled ?? false) ? 'translate-x-6' : 'translate-x-0'
+                    }`}
                 />
               </button>
             </div>
@@ -926,13 +922,13 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
 
               {isEditingReminder && (
                 <div className="flex justify-end pt-4 border-t border-slate-200">
-                  <GlassButton 
+                  <GlassButton
                     onClick={async (e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       console.log('[EmailSettings] Save Email Reminder button clicked')
                       await handleSaveReminder()
-                    }} 
+                    }}
                     isLoading={isSaving}
                   >
                     <Save className="mr-2 h-4 w-4" />
@@ -998,14 +994,12 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
                     setIsEditingSMS(false)
                   }
                 }}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  (smsCfg.confirmationEnabled ?? false) ? 'bg-slate-900' : 'bg-slate-300'
-                }`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${(smsCfg.confirmationEnabled ?? false) ? 'bg-slate-900' : 'bg-slate-300'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    (smsCfg.confirmationEnabled ?? false) ? 'translate-x-6' : 'translate-x-0'
-                  }`}
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${(smsCfg.confirmationEnabled ?? false) ? 'translate-x-6' : 'translate-x-0'
+                    }`}
                 />
               </button>
             </div>
@@ -1031,9 +1025,8 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
                   <p className="text-xs text-slate-500">
                     Use variables like {`{{patient_name}}`} to personalize messages.
                   </p>
-                  <span className={`text-xs font-medium ${
-                    (smsCfg.confirmationTemplate || '').length > 160 ? 'text-rose-500' : 'text-slate-500'
-                  }`}>
+                  <span className={`text-xs font-medium ${(smsCfg.confirmationTemplate || '').length > 160 ? 'text-rose-500' : 'text-slate-500'
+                    }`}>
                     {(smsCfg.confirmationTemplate || '').length} / 160 characters
                   </span>
                 </div>
@@ -1080,14 +1073,12 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
                     setIsEditingSMS(false)
                   }
                 }}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  (smsCfg.reminderEnabled ?? false) ? 'bg-slate-900' : 'bg-slate-300'
-                }`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${(smsCfg.reminderEnabled ?? false) ? 'bg-slate-900' : 'bg-slate-300'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    (smsCfg.reminderEnabled ?? false) ? 'translate-x-6' : 'translate-x-0'
-                  }`}
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${(smsCfg.reminderEnabled ?? false) ? 'translate-x-6' : 'translate-x-0'
+                    }`}
                 />
               </button>
             </div>
@@ -1113,9 +1104,8 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
                   <p className="text-xs text-slate-500">
                     Use variables like {`{{patient_name}}`} to personalize messages.
                   </p>
-                  <span className={`text-xs font-medium ${
-                    (smsCfg.reminderTemplate || '').length > 160 ? 'text-rose-500' : 'text-slate-500'
-                  }`}>
+                  <span className={`text-xs font-medium ${(smsCfg.reminderTemplate || '').length > 160 ? 'text-rose-500' : 'text-slate-500'
+                    }`}>
                     {(smsCfg.reminderTemplate || '').length} / 160 characters
                   </span>
                 </div>
@@ -1131,13 +1121,13 @@ export const EmailSettings = ({ emailConfig, smsConfig, tenantName, onSave, isSa
 
         {isEditingSMS && (
           <div className="flex justify-end pt-4 border-t border-slate-200">
-            <GlassButton 
+            <GlassButton
               onClick={async (e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 console.log('[EmailSettings] Save SMS Configuration button clicked')
                 await handleSaveSMS()
-              }} 
+              }}
               isLoading={isSaving}
             >
               <Save className="mr-2 h-4 w-4" />

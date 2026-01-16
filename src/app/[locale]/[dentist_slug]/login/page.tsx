@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { ShieldCheck } from 'lucide-react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { GlassCard } from '../../../../components/ui/GlassCard'
 import { GlassButton } from '../../../../components/ui/GlassButton'
 import { GlassInput } from '../../../../components/ui/GlassInput'

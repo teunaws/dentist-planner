@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Users, Plus, Edit, Trash2, Save, X, Clock } from 'lucide-react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { GlassCard } from '../../../../components/ui/GlassCard'
 import { GlassButton } from '../../../../components/ui/GlassButton'
 import { GlassInput } from '../../../../components/ui/GlassInput'
@@ -10,7 +10,8 @@ import { GlassBadge } from '../../../../components/ui/GlassBadge'
 import { useTenant } from '../../../../context/TenantContext'
 import { useAuthStore } from '../../../../store/authStore'
 import { supabase } from '../../../../lib/supabase'
-import type { Provider, ProviderWithDetails, ProviderSchedule, ServiceDefinition } from '../../../../types'
+import type { ProviderWithDetails, ProviderSchedule } from '../../../../types'
+import type { ServiceDefinition } from '../../../../types/tenant'
 import { notifications } from '../../../../lib/notifications'
 
 const DAYS_OF_WEEK = [
@@ -127,18 +128,17 @@ export default function TeamPage() {
         }) || []
 
       // Update global context state
-      updateProviders(prev => {
-        const updated = [...prev]
-        updatedProviders.forEach((updatedProvider) => {
-          const index = updated.findIndex((p) => p.id === updatedProvider.id)
-          if (index >= 0) {
-            updated[index] = updatedProvider
-          } else {
-            updated.push(updatedProvider)
-          }
-        })
-        return updated
+      // Update global context state
+      const updated = [...providers]
+      updatedProviders.forEach((updatedProvider) => {
+        const index = updated.findIndex((p) => p.id === updatedProvider.id)
+        if (index >= 0) {
+          updated[index] = updatedProvider
+        } else {
+          updated.push(updatedProvider)
+        }
       })
+      updateProviders(updated)
     } catch (error) {
       console.error('Failed to reload providers:', error)
       // Fallback: Refresh context
@@ -146,117 +146,7 @@ export default function TeamPage() {
     }
   }
 
-  // DEPRECATED: Use TenantContext instead of fetching providers independently
-  // This function is kept as a fallback only
-  const loadData = async () => {
-    if (!tenantId) return
-    setIsLoading(true)
-    try {
-      // Use services from context if available
-      if (config?.services && config.services.length > 0) {
-        setServices(config.services)
-      } else {
-        // Fallback: Load services if not in context
-        const { data: servicesData, error: servicesError } = await supabase
-          .from('services')
-          .select('*')
-          .eq('tenant_id', tenantId)
-          .order('display_order')
 
-        if (servicesError) throw servicesError
-        setServices(
-          servicesData?.map((s) => ({
-            id: s.id,
-            name: s.name,
-            description: s.description || '',
-            duration: s.duration,
-            price: s.price,
-            perks: [],
-          })) || []
-        )
-      }
-
-      // CRITICAL: Use providers from context instead of fetching
-      // This prevents double-fetching and connection pool exhaustion
-      if (config?.providers && config.providers.length > 0) {
-        // Use providers from context and just load their details
-        await loadFullProviderDetails(config.providers.map(p => p.id))
-        return
-      }
-
-      // Fallback: Only fetch if not in context (shouldn't happen in normal flow)
-      const { data: providersData, error: providersError } = await supabase
-        .from('providers')
-        .select('*')
-        .eq('tenant_id', tenantId)
-        .order('name')
-
-      if (providersError) throw providersError
-
-      // Load provider services (capabilities)
-      const { data: providerServicesData, error: psError } = await supabase
-        .from('provider_services')
-        .select('provider_id, service_id, services!inner(id, name)')
-        .in(
-          'provider_id',
-          providersData?.map((p) => p.id) || []
-        )
-
-      if (psError) throw psError
-
-      // Load provider schedules
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from('provider_schedules')
-        .select('*')
-        .in(
-          'provider_id',
-          providersData?.map((p) => p.id) || []
-        )
-
-      if (schedulesError) throw schedulesError
-
-      // Combine data
-      const providersWithDetails: ProviderWithDetails[] =
-        providersData?.map((p) => {
-          const providerServices = providerServicesData
-            ?.filter((ps) => ps.provider_id === p.id)
-            .map((ps) => ({
-              id: ps.service_id,
-              name: (ps.services as any)?.name || '',
-            })) || []
-
-          const providerSchedules =
-            schedulesData
-              ?.filter((s) => s.provider_id === p.id)
-              .map((s) => ({
-                id: s.id,
-                providerId: s.provider_id,
-                dayOfWeek: s.day_of_week,
-                startTime: s.start_time,
-                endTime: s.end_time,
-                isWorking: s.is_working,
-              })) || []
-
-          return {
-            id: p.id,
-            tenantId: p.tenant_id,
-            name: p.name,
-            color: p.color || DEFAULT_COLORS[0],
-            userId: p.user_id,
-            isActive: p.is_active,
-            services: providerServices,
-            schedules: providerSchedules,
-          }
-        }) || []
-
-      setProviders(providersWithDetails)
-    } catch (error) {
-      console.error('Failed to load team data:', error)
-      notifications.error('Failed to load team data')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   // Redirect if not a dentist
   const router = useRouter()
@@ -374,7 +264,7 @@ export default function TeamPage() {
                 provider_id: actualProviderId,
                 service_id: s.id,
               }))
-            )
+            ) as any
           )
         }
 
@@ -388,7 +278,7 @@ export default function TeamPage() {
                 end_time: schedule.endTime,
                 is_working: schedule.isWorking,
               }))
-            )
+            ) as any
           )
         }
 
@@ -409,20 +299,20 @@ export default function TeamPage() {
 
       // Update providers in global context with the saved data
       // For new providers, replace temporary IDs with real IDs
-      updateProviders(prev => {
-        return prev.map((p) => {
-          // Find if this provider was just saved
-          const saved = savedProviders.find(sp => sp.oldId === p.id)
+      const updatedProviders = providers.map((p) => {
+        // Find if this provider was just saved
+        const saved = savedProviders.find(sp => sp.oldId === p.id)
 
-          if (saved) {
-            // Update with the new ID and saved data
-            return saved.provider
-          }
+        if (saved) {
+          // Update with the new ID and saved data
+          return saved.provider
+        }
 
-          // Provider wasn't modified, keep as is
-          return p
-        })
+        // Provider wasn't modified, keep as is
+        return p
       })
+      updateProviders(updatedProviders)
+
 
       // Close UI immediately (optimistic update)
       setEditingId(null)
@@ -818,7 +708,7 @@ export default function TeamPage() {
                               setValidationErrors({}) // Clear validation errors
                               setOriginalProviderSnapshot(null) // Clear snapshot
                             }}
-                            variant="outline"
+                            variant="secondary"
                           >
                             <X className="mr-2 h-4 w-4" />
                             Cancel
@@ -852,7 +742,7 @@ export default function TeamPage() {
                                 setEditingId(provider.id)
                                 setShowAddForm(false)
                               }}
-                              variant="outline"
+                              variant="secondary"
                               size="sm"
                             >
                               <Edit className="mr-2 h-3 w-3" />
@@ -860,7 +750,7 @@ export default function TeamPage() {
                             </GlassButton>
                             <GlassButton
                               onClick={() => handleDeleteProvider(provider.id)}
-                              variant="outline"
+                              variant="secondary"
                               size="sm"
                             >
                               <Trash2 className="mr-2 h-3 w-3" />

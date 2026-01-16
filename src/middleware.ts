@@ -53,7 +53,6 @@ export function middleware(request: NextRequest) {
             // Check if this locale is supported by the tenant
             if (!tenantConfig.supported.includes(locale)) {
                 // Redirect to tenant's default locale, preserving path
-                const pathWithoutLocale = pathname.substring(pathname.indexOf(slug) + slug.length); // get remainder
                 // Correction: pathname is /en/smile-clinic/book -> /smile-clinic/book... 
                 // We want to replace /en with /nl
 

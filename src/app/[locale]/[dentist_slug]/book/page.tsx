@@ -226,8 +226,7 @@ export default function PatientDashboard() {
 
     // Check if current selection is valid for this week
     const isSelectedInWeek = selectedDay && days.some(d => d.toDateString() === selectedDay.toDateString())
-    const currentDayStr = selectedDay?.toISOString().split('T')[0]
-    const currentDayHasSlots = currentDayStr && availabilityMap[currentDayStr]?.length > 0
+
 
     if (isSelectedInWeek) {
       setIsFindingFirstDate(false)

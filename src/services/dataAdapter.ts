@@ -1,4 +1,4 @@
-import { Appointment } from '../types';
+import type { Appointment } from '../types';
 import { supabase } from '../lib/supabase';
 // import { Database } from '../types/supabase'; // Not explicitly needed if supabase instance is typed
 
@@ -80,7 +80,7 @@ class LegacyDataServiceImpl implements IDataService {
 class FhirDataServiceImpl implements IDataService {
     // private client = supabase; // Unused for now
 
-    async getAppointments(tenantId: string, _startDate?: string, _endDate?: string): Promise<Appointment[]> {
+    async getAppointments(_tenantId: string, _startDate?: string, _endDate?: string): Promise<Appointment[]> {
         // In FHIR, we query fhir_appointments and JOIN fhir_patients
         // Since Supabase Client joins are limited on disjoint tables without FK matching exactly how we want sometimes,
         // we might use a dedicated RPC or View.

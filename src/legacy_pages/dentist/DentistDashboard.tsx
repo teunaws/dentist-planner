@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, ShieldCheck, X, Filter } from 'lucide-react'

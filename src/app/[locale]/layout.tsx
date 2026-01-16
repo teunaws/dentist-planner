@@ -1,9 +1,9 @@
 
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { notFound } from 'next/navigation';
-import { routing } from '../../i18n'; // Wait, i18n file export structure might define routing? 
-// Or just validation. We'll rely on getMessages throwing or being empty.
+
+
+
 
 export default async function LocaleLayout({
     children,

@@ -131,7 +131,7 @@ export default function AdminDashboard() {
 
         if (!window.confirm(`Are you sure you want to restore tenant "${tenantName}"?`)) return
 
-        const previousTenants = [...tenants]
+
 
         // Optimistic update: remove from list (since we are showing deleted) 
         // OR keep it but remove deleted status? 

@@ -373,7 +373,7 @@ export const appointmentService = {
   /**
    * Search for appointments by email using Blind Index (HMAC-SHA256)
    */
-  async findAppointmentsByEmail(tenantId: string, email: string): Promise<Appointment[]> {
+  async findAppointmentsByEmail(_tenantId: string, _email: string): Promise<Appointment[]> {
     // We cannot hash locally either because PEPPER is on server!
     // We need a server-side search proxy.
     // Or we just fail this for now as it wasn't explicitly asked?

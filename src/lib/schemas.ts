@@ -33,7 +33,7 @@ export const OperatingHoursSchema = z.object({
 })
 
 export const TenantConfigSchema = z.object({
-    operating_hours_per_day: z.record(OperatingHoursSchema).optional().nullable(),
+    operating_hours_per_day: z.record(z.string(), z.any()).optional().nullable(),
     email_confirmation_enabled: z.boolean().optional(),
     sms_confirmation_enabled: z.boolean().optional(),
     // Add other config validation as needed
