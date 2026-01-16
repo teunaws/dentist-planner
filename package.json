@@ -1,0 +1,53 @@
+{
+  "name": "dentist-appointment-planner-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:setup": "node setup-test-env.js",
+    "test:check-env": "node check-env.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.22",
+    "dotenv": "^16.6.1",
+    "postcss": "^8.5.6",
+    "supabase": "^2.63.1",
+    "tailwindcss": "^3.4.14",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "@sentry/react": "^10.27.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.84.0",
+    "@tanstack/react-query": "^5.90.16",
+    "@tanstack/react-query-devtools": "^5.91.2",
+    "clsx": "^2.1.1",
+    "eslint-config-next": "^16.1.1",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.554.0",
+    "next": "^16.1.1",
+    "next-intl": "^4.7.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-helmet-async": "^2.0.5",
+    "react-is": "^19.2.0",
+    "recharts": "^3.5.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.4",
+    "zustand": "^5.0.8"
+  }
+}
